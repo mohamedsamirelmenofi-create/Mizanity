@@ -1,4 +1,4 @@
-const CACHE = 'mizany-v7';
+const CACHE = 'mizany-v8';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png',
   './icon-maskable-192.png', './icon-maskable-512.png', './apple-touch-icon.png'];
 

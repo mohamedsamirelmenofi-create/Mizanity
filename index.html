@@ -59,7 +59,7 @@ function home(){const L=S.records.filter(inM),inc=sum(L,'income'),ex=sum(L,'expe
 const cf=cinfo(sel),dim=cf.len,days=cf.el,m={};ct.forEach(x=>m[x.category]=(m[x.category]||0)+x.amount);const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
 return`<div class="hero"><small>صافي ${mname()}${rl()?' • '+rl():''}</small><div class="big">${money(inc-ex)}</div><div class="two"><div><small>↙ الإيرادات</small><b class="up">${money(inc)}</b></div><div><small>↗ المصروفات</small><b class="dn">${money(ex)}</b></div></div></div>
 <div class="chips">${S.accts.map(a=>`<div class="chip"><small>${esc(a.n)}</small><b>${money(bal(a.id))}</b></div>`).join('')}</div>${noT?'<div class="note">🔔 لسه ماسجلتش حاجة النهارده</div>':''}${jamNote()}
-${tplRow()}<div class="quick"><button onclick="txForm({type:'income'})">＋ دخل</button><button onclick="txForm({type:'expense'})">− مصروف</button><button onclick="txForm({type:'transfer'})">⇄ تحويل</button><button onclick="debtForm()">🤝 دين</button></div>
+${tplRow()}<div class="quick"><button onclick="txForm({type:'income'})">＋ دخل</button><button onclick="txForm({type:'expense'})">− مصروف</button><button onclick="txForm({type:'transfer'})">⇄ تحويل</button></div>
 <div class="hd"><h2>الميزانية</h2><a onclick="budgetSheet()">تعديل</a></div><div class="card">${b?bar(ex,b,'الإجمالي'):'<div class="empty">حدد ميزانية الشهر من "تعديل"</div>'}${S.cats.filter(c=>S.cb[c.n]).map(c=>bar(catSpend(L,c.n),S.cb[c.n],c.i+' '+esc(c.n))).join('')}</div>
 ${debtsCard()}<div class="hd"><h2>آخر الحركات</h2><a onclick="go('tx')">الكل</a></div><div class="card">${list(L.slice().sort((a,b)=>b.created-a.created).slice(0,5))}</div>
 <div class="hd"><h2>ملخص</h2></div><div class="card"><div class="row"><span>عدد العمليات</span><b>${fmt(L.length)}</b></div><div class="row"><span>متوسط المصروف اليومي</span><b>${money(ex/days)}</b></div><div class="row"><span>أكبر بند</span><b>${top?esc(top[0])+' ('+money(top[1])+')':'—'}</b></div></div>`}
@@ -82,7 +82,7 @@ let uf=null;function toast(m,f){uf=f;const t=$('#toast');t.innerHTML=esc(m)+(f?'
 const opt=(v,s)=>`<option ${v==s?'selected':''}>${esc(v)}</option>`,aopt=s=>S.accts.map(a=>`<option value="${a.id}" ${a.id===s?'selected':''}>${esc(a.n)}</option>`).join('');
 const rd=()=>({amount:+$('#fa').value||'',category:$('#fc')?.value,acct:$('#fx').value,title:$('#ft').value,date:$('#fd').value});
 function txForm(e){e=e||{};const t=e.type||'expense',T=t==='transfer';
-sheet(e.id?'تعديل حركة':'حركة جديدة',`<div class="seg">${[['expense','مصروف'],['income','دخل'],['transfer','تحويل']].map(([k,l])=>`<button class="${t===k?'on':''}" onclick="txForm({...rd(),type:'${k}',id:'${e.id||''}',to:'${e.to||''}'})">${l}</button>`).join('')}<button onclick="debtForm()">🤝 دين</button></div>${e.id?'':tplChips()}${t==='expense'&&!e.id?favChips():''}
+sheet(e.id?'تعديل حركة':'حركة جديدة',`<div class="seg">${[['expense','مصروف'],['income','دخل'],['transfer','تحويل']].map(([k,l])=>`<button class="${t===k?'on':''}" onclick="txForm({...rd(),type:'${k}',id:'${e.id||''}',to:'${e.to||''}'})">${l}</button>`).join('')}</div>${e.id?'':tplChips()}${t==='expense'&&!e.id?favChips():''}
 <label>المبلغ</label><input id="fa" type="number" inputmode="decimal" value="${e.amount||''}">${T?'':`<label>الفئة</label><select id="fc">${cl(t,e).map(c=>opt(c,e.category)).join('')}</select>`}
 <label>${T?'من حساب':'الحساب'}</label><select id="fx">${aopt(e.acct)}</select>${T?`<label>إلى حساب</label><select id="fy">${aopt(e.to)}</select>`:''}
 <label>ملاحظة</label><input id="ft" value="${esc(e.title||'')}"><label>التاريخ</label><input id="fd" type="date" value="${e.date||today()}">
@@ -156,6 +156,6 @@ const keyOf=d=>[mk(new Date(d+'T12:00:00'))].flatMap(k=>[k,pm(k,-1),pm(k,1)]).fi
 function cinfo(K){const g=rng(K),t=today(),len=Math.round((new Date(g[1])-new Date(g[0]))/864e5)+1;return{len,cur:t>=g[0]&&t<=g[1],el:t<g[0]?1:Math.max(1,Math.min(len,Math.round((new Date(t)-new Date(g[0]))/864e5)+1))}}
 const rl=()=>{const g=rng(sel);if(g[0]===sel+'-01'&&g[1]===lastDay(sel))return'';const f=d=>new Date(d+'T12:00:00').toLocaleDateString('ar-EG',{day:'numeric',month:'short'});return f(g[0])+' ← '+f(g[1])};
 (function init(){const m=$('#month');for(let i=-1;i<18;i++){const d=new Date(new Date().getFullYear(),new Date().getMonth()-i,1),o=document.createElement('option');o.value=mk(d);o.textContent=d.toLocaleDateString('ar-EG',{month:'long',year:'numeric'});m.append(o)}
-fixData();runRec();render();if(S.pin)lock();navigator.storage?.persist?.();const a=new URLSearchParams(location.search).get('add');if(a)txForm({type:a});
+fixData();runRec();sel=keyOf(today());render();if(S.pin)lock();navigator.storage?.persist?.();const a=new URLSearchParams(location.search).get('add');if(a)txForm({type:a});
 if('serviceWorker'in navigator)addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))})();
 </script></body></html>
